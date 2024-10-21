@@ -68,16 +68,30 @@ class MySQLConnection(BaseConnection):
         if self.has_global_connection():
             return self.get_global_connection()
 
-        self._connection = pymysql.connect(
-            cursorclass=pymysql.cursors.DictCursor,
-            autocommit=True,
-            host=self.host,
-            user=self.user,
-            password=self.password,
-            port=self.port,
-            db=self.database,
-            **self.options
-        )
+        # Check if there is an available connection in the pool
+        if CONNECTION_POOL:
+            self._connection = CONNECTION_POOL.pop()
+        else:
+            if len(CONNECTION_POOL) < self.options.get("pool_size", 5):  # Default pool size is 5
+            self._connection = pymysql.connect(
+                cursorclass=pymysql.cursors.DictCursor,
+                autocommit=True,
+                host=self.host,
+                user=self.user,
+                password=self.password,
+                port=self.port,
+                database=self.database,
+                **self.options
+            )
+            else:
+            raise ConnectionError("Connection pool limit reached")
+
+        # Add the connection back to the pool when it's closed
+        def close_connection():
+            CONNECTION_POOL.append(self._connection)
+            self._connection = None
+
+        self._connection.close = close_connection
 
         self.enable_disable_foreign_keys()
 
