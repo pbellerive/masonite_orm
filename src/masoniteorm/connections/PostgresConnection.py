@@ -4,6 +4,7 @@ from ..query.grammars import PostgresGrammar
 from ..schema.platforms import PostgresPlatform
 from ..query.processors import PostgresPostProcessor
 from ..exceptions import QueryException
+from psycopg2 import pool
 
 
 CONNECTION_POOL = []
@@ -58,14 +59,22 @@ class PostgresConnection(BaseConnection):
 
         schema = self.schema or self.full_details.get("schema")
 
-        self._connection = psycopg2.connect(
-            database=self.database,
-            user=self.user,
-            password=self.password,
-            host=self.host,
-            port=self.port,
-            options=f"-c search_path={schema}" if schema else "",
-        )
+        # if connection pool is empty, create a new connection pool
+        if not CONNECTION_POOL:
+            CONNECTION_POOL.append(
+                pool.SimpleConnectionPool(
+                    1, 20,  # minconn, maxconn
+                    database=self.database,
+                    user=self.user,
+                    password=self.password,
+                    host=self.host,
+                    port=self.port,
+                    options=f"-c search_path={schema}" if schema else "",
+                )
+            )
+
+        # get a connection from the pool
+        self._connection = CONNECTION_POOL[0].getconn()
 
         self._connection.autocommit = True
 
@@ -121,6 +130,7 @@ class PostgresConnection(BaseConnection):
 
     def set_cursor(self):
         from psycopg2.extras import RealDictCursor
+
 
         self._cursor = self._connection.cursor(cursor_factory=RealDictCursor)
         return self._cursor
