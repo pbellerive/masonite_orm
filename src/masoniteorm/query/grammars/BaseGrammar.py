@@ -251,13 +251,13 @@ class BaseGrammar:
                         on_string += f"{keyword} {self._table_column_string(clause.column1)} {clause.equality} {self._table_column_string(clause.column2)} "
                     else:
                         if clause.value_type == "NULL":
-                            sql_string = self.where_null_string()
+                            sql_string = f"{self.where_null_string()} "
                             on_string += sql_string.format(
                                 keyword=keyword,
                                 column=self.process_column(clause.column),
                             )
                         elif clause.value_type == "NOT NULL":
-                            sql_string = self.where_not_null_string()
+                            sql_string = f"{self.where_not_null_string()} "
                             on_string += sql_string.format(
                                 keyword=keyword,
                                 column=self.process_column(clause.column),
