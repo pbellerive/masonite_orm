@@ -395,11 +395,25 @@ class TestMySQLGrammar(BaseTestCaseSelectGrammar, unittest.TestCase):
         clause = (
             JoinClause("report_groups as rg")
             .on_null("bgt.acct")
-            .or_on_not_null("bgt.dept")
+            .or_on_null("bgt.dept")
+            .on_value("rg.abc", 10)
         )
         builder.join(clause).to_sql()
         """
-        return "SELECT * FROM `users` INNER JOIN `report_groups` AS `rg` ON `acct` IS NULL OR `dept` IS NOT NULL"
+        return "SELECT * FROM `users` INNER JOIN `report_groups` AS `rg` ON `acct` IS NULL OR `dept` IS NULL AND `rg`.`abc` = '10'"
+
+    def can_compile_join_clause_with_not_null(self):
+        """
+        builder = self.get_builder()
+        clause = (
+            JoinClause("report_groups as rg")
+            .on_not_null("bgt.acct")
+            .or_on_not_null("bgt.dept")
+            .on_value("rg.abc", 10)
+        )
+        builder.join(clause).to_sql()
+        """
+        return "SELECT * FROM `users` INNER JOIN `report_groups` AS `rg` ON `acct` IS NOT NULL OR `dept` IS NOT NULL AND `rg`.`abc` = '10'"
 
     def can_compile_join_clause_with_lambda(self):
         """
