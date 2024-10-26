@@ -55,27 +55,45 @@ class MySQLConnection(BaseConnection):
                 "You must have the 'pymysql' package installed to make a connection to MySQL. Please install it using 'pip install pymysql'"
             )
 
-        try:
-            import pendulum
-            import pymysql.converters
-
-            pymysql.converters.conversions[
-                pendulum.DateTime
-            ] = pymysql.converters.escape_datetime
-        except ImportError:
-            pass
 
         if self.has_global_connection():
             return self.get_global_connection()
 
         # Check if there is an available connection in the pool
-        if CONNECTION_POOL:
-            self._connection = CONNECTION_POOL.pop()
+        self._connection = self.create_connection()
+            
+        self._connection.close = self.close_connection
+        self.enable_disable_foreign_keys()
+
+        # self._connection._open = 1
+        self.open = 1
+
+        return self
+
+        # Add the connection back to the pool when it's closed
+    def close_connection(self):
+        if self.full_details.get("connection_pooling_enabled") and len(CONNECTION_POOL) < self.full_details.get("connection_pooling_size", 10):
+            print("connection closing. pool append", self._connection, CONNECTION_POOL, len(CONNECTION_POOL))
+            CONNECTION_POOL.append(self._connection)
+        self._connection = None
+        
+    def create_connection(self, autocommit=True):
+        import pymysql
+        import pendulum
+        import pymysql.converters
+        pymysql.converters.conversions[
+            pendulum.DateTime
+        ] = pymysql.converters.escape_datetime
+        
+        print("STARTING POOL", CONNECTION_POOL, len(CONNECTION_POOL))
+        
+        if self.full_details.get("connection_pooling_enabled") and CONNECTION_POOL:
+            connection = CONNECTION_POOL.pop()
+            print("pool popped", connection, "remaining:", CONNECTION_POOL, len(CONNECTION_POOL))
         else:
-            if len(CONNECTION_POOL) < self.options.get("pool_size", 5):  # Default pool size is 5
-            self._connection = pymysql.connect(
+            connection = pymysql.connect(
                 cursorclass=pymysql.cursors.DictCursor,
-                autocommit=True,
+                autocommit=autocommit,
                 host=self.host,
                 user=self.user,
                 password=self.password,
@@ -83,21 +101,18 @@ class MySQLConnection(BaseConnection):
                 database=self.database,
                 **self.options
             )
-            else:
-            raise ConnectionError("Connection pool limit reached")
+        
+        # Add the connection to the pool if pooling is enabled and the pool size is not exceeded
+        if self.full_details.get("connection_pooling_enabled"):
+            connection_pooling_size = self.full_details.get("connection_pooling_size", 10)
+            if len(CONNECTION_POOL) < connection_pooling_size:
+                CONNECTION_POOL.append(connection)
+        
+        return connection
+        
+        
+        return 
 
-        # Add the connection back to the pool when it's closed
-        def close_connection():
-            CONNECTION_POOL.append(self._connection)
-            self._connection = None
-
-        self._connection.close = close_connection
-
-        self.enable_disable_foreign_keys()
-
-        self.open = 1
-
-        return self
 
     def reconnect(self):
         self._connection.connect()
@@ -170,10 +185,15 @@ class MySQLConnection(BaseConnection):
         if self._dry:
             return {}
 
-        if not self._connection.open:
+        if not self.open:
+            if self._connection is None:
+                self._connection = self.create_connection()
+            
             self._connection.connect()
 
         self._cursor = self._connection.cursor()
+        
+        print("pool", self._connection, CONNECTION_POOL)
 
         try:
             with self._cursor as cursor:
