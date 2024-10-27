@@ -58,8 +58,6 @@ class PostgresConnection(BaseConnection):
         if self.has_global_connection():
             return self.get_global_connection()
 
-        schema = self.schema or self.full_details.get("schema")
-
         self._connection = self.create_connection()
 
         self._connection.autocommit = True
