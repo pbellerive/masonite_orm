@@ -75,7 +75,7 @@ DATABASES = {
         "port": os.getenv("POSTGRES_DATABASE_PORT"),
         "connection_pooling_enabled": True,
         "connection_pooling_max_size": 10,
-        "connection_pooling_min_size": None,
+        "connection_pooling_min_size": 2,
         "prefix": "",
         "log_queries": True,
         "propagate": False,
