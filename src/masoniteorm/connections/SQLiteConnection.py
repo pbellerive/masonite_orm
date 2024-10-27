@@ -59,20 +59,16 @@ class SQLiteConnection(BaseConnection):
         if self.has_global_connection():
             return self.get_global_connection()
 
-        self._connection = self.create_connection()
+        self._connection = sqlite3.connect(self.database, isolation_level=None)
+        self._connection.create_function("REGEXP", 2, regexp)
+
+        self._connection.row_factory = sqlite3.Row
 
         self.enable_disable_foreign_keys()
 
         self.open = 1
 
         return self
-    
-    def create_connection(self):
-        import sqlite3
-        connection = sqlite3.connect(self.database, isolation_level=None)
-        connection.create_function("REGEXP", 2, regexp)
-        connection.row_factory = sqlite3.Row
-        return connection
 
     @classmethod
     def get_default_query_grammar(cls):
