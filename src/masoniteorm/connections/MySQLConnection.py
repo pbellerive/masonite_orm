@@ -36,7 +36,11 @@ class MySQLConnection(BaseConnection):
         self.password = password
         self.prefix = prefix
         self.full_details = full_details or {}
-        self.connection_pool_size = full_details.get("connection_pooling_max_size", 100)
+        self.connection_pool_size = (
+            full_details.get(
+                "connection_pooling_max_size", 100
+            )
+        )
         self.options = options or {}
         self._cursor = None
         self.open = 0
@@ -49,13 +53,6 @@ class MySQLConnection(BaseConnection):
 
         if self._dry:
             return
-
-        try:
-            import pymysql
-        except ModuleNotFoundError:
-            raise DriverNotFound(
-                "You must have the 'pymysql' package installed to make a connection to MySQL. Please install it using 'pip install pymysql'"
-            )
 
         if self.has_global_connection():
             return self.get_global_connection()
@@ -80,7 +77,15 @@ class MySQLConnection(BaseConnection):
         self._connection = None
 
     def create_connection(self, autocommit=True):
-        import pymysql
+
+        try:
+            import pymysql
+        except ModuleNotFoundError:
+            raise DriverNotFound(
+                "You must have the 'pymysql' package "
+                "installed to make a connection to MySQL. "
+                "Please install it using 'pip install pymysql'"
+            )
         import pendulum
         import pymysql.converters
 
@@ -180,15 +185,19 @@ class MySQLConnection(BaseConnection):
         return self._cursor
 
     def query(self, query, bindings=(), results="*"):
-        """Make the actual query that will reach the database and come back with a result.
+        """Make the actual query that
+        will reach the database and come back with a result.
 
         Arguments:
-            query {string} -- A string query. This could be a qmarked string or a regular query.
+            query {string} -- A string query.
+            This could be a qmarked string or a regular query.
             bindings {tuple} -- A tuple of bindings
 
         Keyword Arguments:
-            results {str|1} -- If the results is equal to an asterisks it will call 'fetchAll'
-                    else it will return 'fetchOne' and return a single record. (default: {"*"})
+            results {str|1} -- If the results is equal to an
+            asterisks it will call 'fetchAll'
+            else it will return 'fetchOne' and
+            return a single record. (default: {"*"})
 
         Returns:
             dict|None -- Returns a dictionary of results or None
