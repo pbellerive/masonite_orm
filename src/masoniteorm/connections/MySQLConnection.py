@@ -76,7 +76,6 @@ class MySQLConnection(BaseConnection):
     def close_connection(self):
         if self.full_details.get("connection_pooling_enabled") and len(CONNECTION_POOL) < self.connection_pool_size:
             CONNECTION_POOL.append(self._connection)
-            print("connection closing. pool append", self._connection, CONNECTION_POOL, len(CONNECTION_POOL))
 
         self._connection = None
         
@@ -88,7 +87,6 @@ class MySQLConnection(BaseConnection):
             pendulum.DateTime
         ] = pymysql.converters.escape_datetime
         
-        print("STARTING POOL", CONNECTION_POOL, len(CONNECTION_POOL))
         
         # Initialize the connection pool if the option is set
         initialize_size = self.full_details.get("connection_pool_initialize_size")
@@ -105,11 +103,9 @@ class MySQLConnection(BaseConnection):
                     **self.options
                 )
                 CONNECTION_POOL.append(connection)
-            print(f"Initialized connection pool with {initialize_size} connections")
 
         if self.full_details.get("connection_pooling_enabled") and CONNECTION_POOL and len(CONNECTION_POOL) > 0:
             connection = CONNECTION_POOL.pop()
-            print("pool popped", connection, "remaining:", CONNECTION_POOL, len(CONNECTION_POOL))
         else:
             connection = pymysql.connect(
                 cursorclass=pymysql.cursors.DictCursor,
@@ -203,7 +199,6 @@ class MySQLConnection(BaseConnection):
 
         self._cursor = self._connection.cursor()
         
-        print("pool", self._connection, CONNECTION_POOL)
 
         try:
             with self._cursor as cursor:
