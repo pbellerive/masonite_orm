@@ -31,10 +31,12 @@ class MySQLConnection(BaseConnection):
         if str(port).isdigit():
             self.port = int(self.port)
         self.database = database
+        
         self.user = user
         self.password = password
         self.prefix = prefix
         self.full_details = full_details or {}
+        self.connection_pool_size = full_details.get("connection_pooling_size", 100)
         self.options = options or {}
         self._cursor = None
         self.open = 0
@@ -72,9 +74,10 @@ class MySQLConnection(BaseConnection):
 
         # Add the connection back to the pool when it's closed
     def close_connection(self):
-        if self.full_details.get("connection_pooling_enabled") and len(CONNECTION_POOL) < self.full_details.get("connection_pooling_size", 10):
-            print("connection closing. pool append", self._connection, CONNECTION_POOL, len(CONNECTION_POOL))
+        if self.full_details.get("connection_pooling_enabled") and len(CONNECTION_POOL) < self.connection_pool_size:
             CONNECTION_POOL.append(self._connection)
+            print("connection closing. pool append", self._connection, CONNECTION_POOL, len(CONNECTION_POOL))
+
         self._connection = None
         
     def create_connection(self, autocommit=True):
@@ -87,7 +90,7 @@ class MySQLConnection(BaseConnection):
         
         print("STARTING POOL", CONNECTION_POOL, len(CONNECTION_POOL))
         
-        if self.full_details.get("connection_pooling_enabled") and CONNECTION_POOL:
+        if self.full_details.get("connection_pooling_enabled") and CONNECTION_POOL and len(CONNECTION_POOL) > 0:
             connection = CONNECTION_POOL.pop()
             print("pool popped", connection, "remaining:", CONNECTION_POOL, len(CONNECTION_POOL))
         else:
@@ -102,17 +105,7 @@ class MySQLConnection(BaseConnection):
                 **self.options
             )
         
-        # Add the connection to the pool if pooling is enabled and the pool size is not exceeded
-        if self.full_details.get("connection_pooling_enabled"):
-            connection_pooling_size = self.full_details.get("connection_pooling_size", 10)
-            if len(CONNECTION_POOL) < connection_pooling_size:
-                CONNECTION_POOL.append(connection)
-        
         return connection
-        
-        
-        return 
-
 
     def reconnect(self):
         self._connection.connect()
