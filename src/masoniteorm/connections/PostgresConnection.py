@@ -191,7 +191,7 @@ class PostgresConnection(BaseConnection):
             dict|None -- Returns a dictionary of results or None
         """
         try:
-            if not hasattr(self, '_connection') or self._connection.closed:
+            if not self._connection or self._connection.closed:
                 self.make_connection()
 
             self.set_cursor()
