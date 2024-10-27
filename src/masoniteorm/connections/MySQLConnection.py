@@ -61,7 +61,7 @@ class MySQLConnection(BaseConnection):
         self._connection = self.create_connection()
         self.enable_disable_foreign_keys()
 
-        self.open = 1
+
 
         return self
 
@@ -73,7 +73,7 @@ class MySQLConnection(BaseConnection):
             and len(CONNECTION_POOL) < self.connection_pool_size
         ):
             CONNECTION_POOL.append(self._connection)
-
+        self.open = 0
         self._connection = None
 
     def create_connection(self, autocommit=True):
@@ -128,6 +128,8 @@ class MySQLConnection(BaseConnection):
             )
 
         connection.close = self.close_connection
+        
+        self.open = 1
 
         return connection
 
