@@ -63,7 +63,6 @@ class MySQLConnection(BaseConnection):
 
         # Check if there is an available connection in the pool
         self._connection = self.create_connection()
-        self._connection.close = self.close_connection
         self.enable_disable_foreign_keys()
 
         self.open = 1
@@ -115,6 +114,8 @@ class MySQLConnection(BaseConnection):
                 database=self.database,
                 **self.options
             )
+            
+        connection.close = self.close_connection
         
         return connection
 
