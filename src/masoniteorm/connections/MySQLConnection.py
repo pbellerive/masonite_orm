@@ -89,7 +89,7 @@ class MySQLConnection(BaseConnection):
         
         
         # Initialize the connection pool if the option is set
-        initialize_size = self.full_details.get("connection_pool_min_size")
+        initialize_size = self.full_details.get("connection_pooling_min_size")
         if initialize_size and len(CONNECTION_POOL) < initialize_size:
             for _ in range(initialize_size - len(CONNECTION_POOL)):
                 connection = pymysql.connect(
