@@ -24,6 +24,7 @@ The connections here don't determine the database but determine the "connection"
 They can be named whatever you want.
 """
 
+
 DATABASES = {
     "default": "mysql",
     "mysql": {
@@ -31,14 +32,15 @@ DATABASES = {
         "host": os.getenv("MYSQL_DATABASE_HOST"),
         "user": os.getenv("MYSQL_DATABASE_USER"),
         "password": os.getenv("MYSQL_DATABASE_PASSWORD"),
-        "database": "rothco_ll_preproduction",
+        "database": os.getenv("MYSQL_DATABASE_DATABASE"),
         "port": os.getenv("MYSQL_DATABASE_PORT"),
         "prefix": "",
         "options": {"charset": "utf8mb4"},
         "log_queries": True,
         "propagate": False,
         "connection_pooling_enabled": True,
-        "connection_pooling_size": 2,
+        "connection_pooling_max_size": 10,
+        "connection_pool_min_size": None,
     },
     "t": {"driver": "sqlite", "database": "orm.sqlite3", "log_queries": True, "foreign_keys": True},
     "devprod": {
