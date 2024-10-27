@@ -40,7 +40,7 @@ DATABASES = {
         "propagate": False,
         "connection_pooling_enabled": True,
         "connection_pooling_max_size": 10,
-        "connection_pool_min_size": None,
+        "connection_pooling_min_size": None,
     },
     "t": {"driver": "sqlite", "database": "orm.sqlite3", "log_queries": True, "foreign_keys": True},
     "devprod": {

@@ -31,7 +31,7 @@ class MySQLConnection(BaseConnection):
         if str(port).isdigit():
             self.port = int(self.port)
         self.database = database
-        
+
         self.user = user
         self.password = password
         self.prefix = prefix
@@ -57,13 +57,12 @@ class MySQLConnection(BaseConnection):
                 "You must have the 'pymysql' package installed to make a connection to MySQL. Please install it using 'pip install pymysql'"
             )
 
-
         if self.has_global_connection():
             return self.get_global_connection()
 
         # Check if there is an available connection in the pool
         self._connection = self.create_connection()
-            
+
         self._connection.close = self.close_connection
         self.enable_disable_foreign_keys()
 
@@ -73,21 +72,25 @@ class MySQLConnection(BaseConnection):
         return self
 
         # Add the connection back to the pool when it's closed
+
     def close_connection(self):
-        if self.full_details.get("connection_pooling_enabled") and len(CONNECTION_POOL) < self.connection_pool_size:
+        if (
+            self.full_details.get("connection_pooling_enabled")
+            and len(CONNECTION_POOL) < self.connection_pool_size
+        ):
             CONNECTION_POOL.append(self._connection)
 
         self._connection = None
-        
+
     def create_connection(self, autocommit=True):
         import pymysql
         import pendulum
         import pymysql.converters
-        pymysql.converters.conversions[
-            pendulum.DateTime
-        ] = pymysql.converters.escape_datetime
-        
-        
+
+        pymysql.converters.conversions[pendulum.DateTime] = (
+            pymysql.converters.escape_datetime
+        )
+
         # Initialize the connection pool if the option is set
         initialize_size = self.full_details.get("connection_pooling_min_size")
         if initialize_size and len(CONNECTION_POOL) < initialize_size:
@@ -104,7 +107,11 @@ class MySQLConnection(BaseConnection):
                 )
                 CONNECTION_POOL.append(connection)
 
-        if self.full_details.get("connection_pooling_enabled") and CONNECTION_POOL and len(CONNECTION_POOL) > 0:
+        if (
+            self.full_details.get("connection_pooling_enabled")
+            and CONNECTION_POOL
+            and len(CONNECTION_POOL) > 0
+        ):
             connection = CONNECTION_POOL.pop()
         else:
             connection = pymysql.connect(
@@ -117,7 +124,7 @@ class MySQLConnection(BaseConnection):
                 database=self.database,
                 **self.options
             )
-        
+
         return connection
 
     def reconnect(self):
@@ -194,11 +201,10 @@ class MySQLConnection(BaseConnection):
         if not self.open:
             if self._connection is None:
                 self._connection = self.create_connection()
-            
+
             self._connection.connect()
 
         self._cursor = self._connection.cursor()
-        
 
         try:
             with self._cursor as cursor:
