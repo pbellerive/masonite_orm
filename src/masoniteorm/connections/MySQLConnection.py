@@ -36,7 +36,7 @@ class MySQLConnection(BaseConnection):
         self.password = password
         self.prefix = prefix
         self.full_details = full_details or {}
-        self.connection_pool_size = full_details.get("connection_pooling_size", 100)
+        self.connection_pool_size = full_details.get("connection_pooling_max_size", 100)
         self.options = options or {}
         self._cursor = None
         self.open = 0
@@ -89,7 +89,7 @@ class MySQLConnection(BaseConnection):
         
         
         # Initialize the connection pool if the option is set
-        initialize_size = self.full_details.get("connection_pool_initialize_size")
+        initialize_size = self.full_details.get("connection_pool_min_size")
         if initialize_size and len(CONNECTION_POOL) < initialize_size:
             for _ in range(initialize_size - len(CONNECTION_POOL)):
                 connection = pymysql.connect(
