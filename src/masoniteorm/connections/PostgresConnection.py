@@ -34,7 +34,7 @@ class PostgresConnection(BaseConnection):
         self.database = database
         self.user = user
         self.password = password
-        
+
         self.prefix = prefix
         self.full_details = full_details or {}
         self.connection_pool_size = full_details.get("connection_pooling_max_size", 100)
@@ -67,13 +67,17 @@ class PostgresConnection(BaseConnection):
         self.open = 1
 
         return self
-    
+
     def create_connection(self):
         import psycopg2
 
         # Initialize the connection pool if the option is set
         initialize_size = self.full_details.get("connection_pooling_min_size")
-        if self.full_details.get("connection_pooling_enabled") and initialize_size and len(CONNECTION_POOL) < initialize_size:
+        if (
+            self.full_details.get("connection_pooling_enabled")
+            and initialize_size
+            and len(CONNECTION_POOL) < initialize_size
+        ):
             for _ in range(initialize_size - len(CONNECTION_POOL)):
                 connection = psycopg2.connect(
                     database=self.database,
@@ -81,10 +85,13 @@ class PostgresConnection(BaseConnection):
                     password=self.password,
                     host=self.host,
                     port=self.port,
-                    options=f"-c search_path={self.schema or self.full_details.get('schema')}" if self.schema or self.full_details.get('schema') else "",
+                    options=(
+                        f"-c search_path={self.schema or self.full_details.get('schema')}"
+                        if self.schema or self.full_details.get("schema")
+                        else ""
+                    ),
                 )
                 CONNECTION_POOL.append(connection)
-                
 
         if (
             self.full_details.get("connection_pooling_enabled")
@@ -99,11 +106,15 @@ class PostgresConnection(BaseConnection):
                 password=self.password,
                 host=self.host,
                 port=self.port,
-                options=f"-c search_path={self.schema or self.full_details.get('schema')}" if self.schema or self.full_details.get('schema') else "",
+                options=(
+                    f"-c search_path={self.schema or self.full_details.get('schema')}"
+                    if self.schema or self.full_details.get("schema")
+                    else ""
+                ),
             )
 
         return connection
-    
+
     def get_database_name(self):
         return self.database
 
@@ -121,7 +132,7 @@ class PostgresConnection(BaseConnection):
 
     def reconnect(self):
         pass
-    
+
     def close_connection(self):
         if (
             self.full_details.get("connection_pooling_enabled")
