@@ -63,7 +63,8 @@ class PostgresConnection(BaseConnection):
         if not CONNECTION_POOL:
             CONNECTION_POOL.append(
                 pool.SimpleConnectionPool(
-                    1, 20,  # minconn, maxconn
+                    1,
+                    20,  # minconn, maxconn
                     database=self.database,
                     user=self.user,
                     password=self.password,
@@ -130,7 +131,6 @@ class PostgresConnection(BaseConnection):
 
     def set_cursor(self):
         from psycopg2.extras import RealDictCursor
-
 
         self._cursor = self._connection.cursor(cursor_factory=RealDictCursor)
         return self._cursor
