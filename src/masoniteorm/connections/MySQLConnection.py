@@ -90,6 +90,23 @@ class MySQLConnection(BaseConnection):
         
         print("STARTING POOL", CONNECTION_POOL, len(CONNECTION_POOL))
         
+        # Initialize the connection pool if the option is set
+        initialize_size = self.full_details.get("connection_pool_initialize_size")
+        if initialize_size and len(CONNECTION_POOL) < initialize_size:
+            for _ in range(initialize_size - len(CONNECTION_POOL)):
+                connection = pymysql.connect(
+                    cursorclass=pymysql.cursors.DictCursor,
+                    autocommit=autocommit,
+                    host=self.host,
+                    user=self.user,
+                    password=self.password,
+                    port=self.port,
+                    database=self.database,
+                    **self.options
+                )
+                CONNECTION_POOL.append(connection)
+            print(f"Initialized connection pool with {initialize_size} connections")
+
         if self.full_details.get("connection_pooling_enabled") and CONNECTION_POOL and len(CONNECTION_POOL) > 0:
             connection = CONNECTION_POOL.pop()
             print("pool popped", connection, "remaining:", CONNECTION_POOL, len(CONNECTION_POOL))
