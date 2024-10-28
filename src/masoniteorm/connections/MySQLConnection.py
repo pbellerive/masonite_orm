@@ -61,11 +61,7 @@ class MySQLConnection(BaseConnection):
         self._connection = self.create_connection()
         self.enable_disable_foreign_keys()
 
-
-
         return self
-
-        # Add the connection back to the pool when it's closed
 
     def close_connection(self):
         if (
@@ -128,7 +124,7 @@ class MySQLConnection(BaseConnection):
             )
 
         connection.close = self.close_connection
-        
+
         self.open = 1
 
         return connection
