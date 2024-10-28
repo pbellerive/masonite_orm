@@ -431,7 +431,7 @@ class Model(TimeStampsMixin, ObservesEvents, metaclass=ModelMeta):
             if isinstance(record_id, (list, tuple)):
                 return builder.get()
 
-            return builder.first()
+        return builder.first()
 
     @classmethod
     def find_or_fail(cls, record_id, query=False):
