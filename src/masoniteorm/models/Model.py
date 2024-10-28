@@ -427,9 +427,9 @@ class Model(TimeStampsMixin, ObservesEvents, metaclass=ModelMeta):
 
         if query:
             return builder
-
-        if isinstance(record_id, (list, tuple)):
-            return builder.get()
+        else:
+            if isinstance(record_id, (list, tuple)):
+                return builder.get()
 
         return builder.first()
 
@@ -562,7 +562,7 @@ class Model(TimeStampsMixin, ObservesEvents, metaclass=ModelMeta):
         if query:
             return cls.builder.create(
                 dictionary, query=True, cast=cast, **kwargs
-            ).to_sql()
+            )
 
         return cls.builder.create(dictionary, cast=cast, **kwargs)
 
@@ -897,7 +897,7 @@ class Model(TimeStampsMixin, ObservesEvents, metaclass=ModelMeta):
         if self.is_loaded():
             result = builder.update(
                 self.__dirty_attributes__, dry=query, ignore_mass_assignment=True
-            ).to_sql()
+            )
         else:
             result = self.create(self.__dirty_attributes__, query=query)
 
