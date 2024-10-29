@@ -57,40 +57,46 @@ class HasManyThrough(BaseRelationship):
             if attribute in instance._relationships:
                 return instance._relationships[attribute]
 
-            result = self.apply_query(
+            result = self.apply_related_query(
                 self.distant_builder, self.intermediary_builder, instance
             )
             return result
         else:
             return self
 
-    def apply_query(self, distant_builder, intermediary_builder, owner):
-        """Apply the query and return a dictionary to be hydrated.
-            Used during accessing a relationship on a model
-
-        Arguments:
-            query {oject} -- The relationship object
-            owner {object} -- The current model oject.
-
-        Returns:
-            dict -- A dictionary of data which will be hydrated.
+    def apply_related_query(self, distant_builder, intermediary_builder, owner):
         """
-        # select * from `countries` inner join `ports` on `ports`.`country_id` = `countries`.`country_id` where `ports`.`port_id` is null and `countries`.`deleted_at` is null and `ports`.`deleted_at` is null
-        result = (
-            distant_builder.join(
-                f"{self.intermediary_builder.get_table_name()}",
-                f"{self.intermediary_builder.get_table_name()}.{self.foreign_key}",
+        Apply the query to return a Collection of data for the distant models to be hydrated with.
+
+        Method is used when accessing a relationship on a model if its not
+        already eager loaded
+
+        Arguments
+            distant_builder (QueryBuilder): QueryBuilder attached to the distant table
+            intermediate_builder (QueryBuilder): QueryBuilder attached to the intermediate (linking) table
+            owner (Any): the model this relationship is starting from
+
+        Returns
+            Collection: Collection of  dicts which will be used for hydrating models.
+        """
+
+        dist_table = self.distant_builder.get_table_name()
+        int_table = self.intermediary_builder.get_table_name()
+
+        return (
+            self.distant_builder.select(f"{dist_table}.*, {int_table}.{self.local_key}")
+            .join(
+                f"{int_table}",
+                f"{int_table}.{self.foreign_key}",
                 "=",
-                f"{distant_builder.get_table_name()}.{self.other_owner_key}",
+                f"{dist_table}.{self.other_owner_key}",
             )
             .where(
-                f"{self.intermediary_builder.get_table_name()}.{self.local_owner_key}",
-                getattr(owner, self.other_owner_key),
+                f"{int_table}.{self.local_key}",
+                getattr(owner, self.local_owner_key),
             )
             .get()
         )
-
-        return result
 
     def relate(self, related_model):
         return self.distant_builder.join(
