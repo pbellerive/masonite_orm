@@ -76,12 +76,19 @@ class HasManyThrough(BaseRelationship):
             dict -- A dictionary of data which will be hydrated.
         """
         # select * from `countries` inner join `ports` on `ports`.`country_id` = `countries`.`country_id` where `ports`.`port_id` is null and `countries`.`deleted_at` is null and `ports`.`deleted_at` is null
-        result = distant_builder.join(
-            f"{self.intermediary_builder.get_table_name()}",
-            f"{self.intermediary_builder.get_table_name()}.{self.foreign_key}",
-            "=",
-            f"{distant_builder.get_table_name()}.{self.other_owner_key}",
-        ).where(f"{self.intermediary_builder.get_table_name()}.{self.local_owner_key}", getattr(owner, self.other_owner_key)).get()
+        result = (
+            distant_builder.join(
+                f"{self.intermediary_builder.get_table_name()}",
+                f"{self.intermediary_builder.get_table_name()}.{self.foreign_key}",
+                "=",
+                f"{distant_builder.get_table_name()}.{self.other_owner_key}",
+            )
+            .where(
+                f"{self.intermediary_builder.get_table_name()}.{self.local_owner_key}",
+                getattr(owner, self.other_owner_key),
+            )
+            .get()
+        )
 
         return result
 
@@ -104,20 +111,61 @@ class HasManyThrough(BaseRelationship):
 
         return builder
 
+    def register_related(self, key, model, collection):
+        """
+        Attach the related model to source models attribute
+
+        Arguments
+            key (str): The attribute name
+            model (Any): The model instance
+            collection (Collection): The data for the related models
+
+        Returns
+            None
+        """
+        related = collection.get(getattr(model, self.local_owner_key), None)
+        model.add_relation({key: related if related else None})
+
     def get_related(self, query, relation, eagers=None, callback=None):
-        builder = self.distant_builder
+        """
+        Get a Collection to hydrate the models for the distant table with
+        Used when eager loading the model attribute
+
+        Arguments
+            query (QueryBuilder): The source models QueryBuilder object
+            relation (HasManyThrough): this relationship object
+            eagers (Any):
+            callback (Any):
+
+        Returns
+             Collection the collection of dicts to hydrate the distant models with
+        """
+
+        dist_table = self.distant_builder.get_table_name()
+        int_table = self.intermediary_builder.get_table_name()
 
         if callback:
-            callback(builder)
+            callback(current_builder)
+
+        (
+            self.distant_builder.select(
+                f"{dist_table}.*, {int_table}.{self.local_key}"
+            ).join(
+                f"{int_table}",
+                f"{int_table}.{self.foreign_key}",
+                "=",
+                f"{dist_table}.{self.other_owner_key}",
+            )
+        )
 
         if isinstance(relation, Collection):
-            return builder.where_in(
-                f"{builder.get_table_name()}.{self.foreign_key}",
-                Collection(relation._get_value(self.local_key)).unique(),
+            return self.distant_builder.where_in(
+                f"{int_table}.{self.local_key}",
+                Collection(relation._get_value(self.local_owner_key)).unique(),
             ).get()
         else:
-            return builder.where(
-                f"{builder.get_table_name()}.{self.foreign_key}",
+            return self.distant_builder.where(
+                f"{int_table}.{self.local_key}",
                 getattr(relation, self.local_owner_key),
             ).get()
 
