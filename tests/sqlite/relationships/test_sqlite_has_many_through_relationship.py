@@ -1,5 +1,6 @@
 import unittest
 
+from src.masoniteorm.collection import Collection
 from src.masoniteorm.models import Model
 from src.masoniteorm.relationships import has_many_through
 from tests.integrations.config.database import DATABASES
@@ -90,13 +91,14 @@ class TestHasManyThroughRelationship(unittest.TestCase):
         courses = Course.where("name", "Math 101").with_("students").get()
         students = courses.first().students
 
-        self.assertEqual(len(students), 2)
+        self.assertIsInstance(students, Collection)
+        self.assertEqual(students.count(), 2)
 
-        student1 = students[0]
+        student1 = students.shift()
         self.assertIsInstance(student1, Student)
         self.assertEqual(student1.name, "Alice")
 
-        student2 = students[1]
+        student2 = students.shift()
         self.assertIsInstance(student2, Student)
         self.assertEqual(student2.name, "Bob")
 
@@ -106,9 +108,14 @@ class TestHasManyThroughRelationship(unittest.TestCase):
             .with_("students")
             .first()
         )
+        self.assertIsInstance(single.students, Collection)
+
         single_get = (
             Course.where("name", "History 101").with_("students").get()
         )
+
+        print(single.students)
+        print(single_get.first().students)
         self.assertEqual(single.students.count(), 1)
         self.assertEqual(single_get.first().students.count(), 1)
 
@@ -126,6 +133,7 @@ class TestHasManyThroughRelationship(unittest.TestCase):
 
     def test_has_many_through_can_get_related(self):
         course = Course.where("name", "Math 101").first()
+        self.assertIsInstance(course.students, Collection)
         self.assertIsInstance(course.students.first(), Student)
         self.assertEqual(course.students.count(), 2)
 

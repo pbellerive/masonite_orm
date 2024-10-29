@@ -1,5 +1,5 @@
-from .BaseRelationship import BaseRelationship
 from ..collection import Collection
+from .BaseRelationship import BaseRelationship
 
 
 class HasManyThrough(BaseRelationship):
@@ -130,6 +130,9 @@ class HasManyThrough(BaseRelationship):
             None
         """
         related = collection.get(getattr(model, self.local_owner_key), None)
+        if related and not isinstance(related, Collection):
+            related = Collection(related)
+
         model.add_relation({key: related if related else None})
 
     def get_related(self, query, relation, eagers=None, callback=None):
@@ -203,9 +206,7 @@ class HasManyThrough(BaseRelationship):
 
         return self.distant_builder
 
-    def query_where_exists(
-        self, current_builder, callback, method="where_exists"
-    ):
+    def query_where_exists(self, current_builder, callback, method="where_exists"):
         dist_table = self.distant_builder.get_table_name()
         int_table = self.intermediary_builder.get_table_name()
 
@@ -215,10 +216,12 @@ class HasManyThrough(BaseRelationship):
                 f"{int_table}.{self.foreign_key}",
                 "=",
                 f"{dist_table}.{self.other_owner_key}",
-            ).where_column(
+            )
+            .where_column(
                 f"{int_table}.{self.local_key}",
                 f"{current_builder.get_table_name()}.{self.local_owner_key}",
-            ).when(callback, lambda q: (callback(q)))
+            )
+            .when(callback, lambda q: (callback(q)))
         )
 
     def get_with_count_query(self, current_builder, callback):
@@ -249,7 +252,9 @@ class HasManyThrough(BaseRelationship):
                         lambda q: (
                             q.where_in(
                                 self.foreign_key,
-                                callback(self.distant_builder.select(self.other_owner_key)),
+                                callback(
+                                    self.distant_builder.select(self.other_owner_key)
+                                ),
                             )
                         ),
                     )
