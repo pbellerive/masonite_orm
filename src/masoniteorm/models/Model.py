@@ -354,7 +354,10 @@ class Model(TimeStampsMixin, ObservesEvents, metaclass=ModelMeta):
             dry=self.__dry__,
         )
 
-        return self.builder.select(*self.__selects__)
+        return self.builder.select(*self.get_selects())
+
+    def get_selects(self):
+        return self.__selects__
 
     @classmethod
     def get_columns(cls):
