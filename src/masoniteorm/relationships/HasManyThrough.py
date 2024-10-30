@@ -80,8 +80,8 @@ class HasManyThrough(BaseRelationship):
             Collection: Collection of  dicts which will be used for hydrating models.
         """
 
-        dist_table = self.distant_builder.get_table_name()
-        int_table = self.intermediary_builder.get_table_name()
+        dist_table = distant_builder.get_table_name()
+        int_table = intermediary_builder.get_table_name()
 
         return (
             self.distant_builder.select(f"{dist_table}.*, {int_table}.{self.local_key}")
