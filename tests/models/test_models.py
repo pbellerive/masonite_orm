@@ -36,6 +36,12 @@ class ModelTestForced(Model):
     __table__ = "users"
     __force_update__ = True
 
+class BaseModel(Model):
+    def get_selects(self):
+        return [f"{self.get_table_name()}.*"]
+
+class ModelWithBaseModel(BaseModel):
+    __table__ = "users"
 
 class TestModels(unittest.TestCase):
     def test_model_can_access_str_dates_as_pendulum(self):
@@ -253,3 +259,17 @@ class TestModels(unittest.TestCase):
         # Removing one of the props allows us to instantiate
         delattr(InvalidFillableGuardedModelTest, "__guarded__")
         InvalidFillableGuardedModelTest()
+
+    def test_model_can_provide_default_select(self):
+        sql = ModelWithBaseModel.to_sql()
+        self.assertEqual(
+            sql,
+            """SELECT `users`.* FROM `users`""",
+        )
+
+    def test_model_can_add_to_default_select(self):
+        sql = ModelWithBaseModel.select(["products.name", "products.id", "store.name"]).to_sql()
+        self.assertEqual(
+            sql,
+            """SELECT `users`.*, `products`.`name`, `products`.`id`, `store`.`name` FROM `users`""",
+        )
