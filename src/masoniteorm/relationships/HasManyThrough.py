@@ -135,13 +135,13 @@ class HasManyThrough(BaseRelationship):
 
         model.add_relation({key: related if related else None})
 
-    def get_related(self, query, relation, eagers=None, callback=None):
+    def get_related(self, current_builder, relation, eagers=None, callback=None):
         """
         Get a Collection to hydrate the models for the distant table with
         Used when eager loading the model attribute
 
         Arguments
-            query (QueryBuilder): The source models QueryBuilder object
+            current_builder (QueryBuilder): The source models QueryBuilder object
             relation (HasManyThrough): this relationship object
             eagers (Any):
             callback (Any):
