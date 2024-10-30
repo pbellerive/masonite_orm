@@ -85,6 +85,10 @@ class PostgresConnection(BaseConnection):
                     password=self.password,
                     host=self.host,
                     port=self.port,
+                    sslmode=self.options.get("sslmode"),
+                    sslcert=self.options.get("sslcert"),
+                    sslkey=self.options.get("sslkey"),
+                    sslrootcert=self.options.get("sslrootcert"),
                     options=(
                         f"-c search_path={self.schema or self.full_details.get('schema')}"
                         if self.schema or self.full_details.get("schema")
@@ -106,6 +110,10 @@ class PostgresConnection(BaseConnection):
                 password=self.password,
                 host=self.host,
                 port=self.port,
+                sslmode=self.options.get("sslmode"),
+                sslcert=self.options.get("sslcert"),
+                sslkey=self.options.get("sslkey"),
+                sslrootcert=self.options.get("sslrootcert"),
                 options=(
                     f"-c search_path={self.schema or self.full_details.get('schema')}"
                     if self.schema or self.full_details.get("schema")
