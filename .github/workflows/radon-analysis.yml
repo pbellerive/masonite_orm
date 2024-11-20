@@ -30,7 +30,7 @@ jobs:
         radon cc -s -a src/masoniteorm/collection > radon_output.txt
         output=$(cat radon_output.txt)
         echo "$output"
-        echo "::set-output name=radon_output::$output"
+        echo "radon_output=$output" >> $GITHUB_ENV
 
     - name: Comment on Pull Request
       if: github.event_name == 'pull_request'
@@ -40,5 +40,5 @@ jobs:
         header: Radon Cyclomatic Complexity Report
         message: |
           ```console
-          ${{ steps.radon.outputs.radon_output }}
+          ${{ env.radon_output }}
           ```
