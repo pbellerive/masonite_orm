@@ -1,25 +1,26 @@
 name: Radon Analysis
-on:
-  pull_request:
-    branches: ["2.0"]
+
+on: [push, pull_request]
 
 jobs:
-  comment:
-    permissions:
-      pull-requests: write
+  radon-analysis:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Install Radon
-        run: pip install radon
-      - name: Create Radon's reports
-        run: |
-          radon cc $(git diff --name-only 2.0...HEAD || echo "no_files") -j >cc.json
-          radon mi $(git diff --name-only 2.0...HEAD || echo "no_files") -j >mi.json
-          radon hal $(git diff --name-only 2.0...HEAD || echo "no_files") -j >hal.json
-      - name: Comment the results on the PR
-        uses: Libra-foundation/radon-comment@v0.1
-        with:
-          cc: "cc.json"
-          mi: "mi.json"
-          hal: "hal.json"
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Fetch all history for all branches and tags
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install Radon
+      run: pip install radon
+
+    - name: Run Radon Analysis
+      run: |
+        git fetch --unshallow  # Ensure full history is available
+        radon cc $(git diff --name-only 2.0...HEAD || echo "no_files") -j >cc.json
