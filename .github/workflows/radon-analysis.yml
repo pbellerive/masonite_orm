@@ -22,5 +22,5 @@ jobs:
 
     - name: Run Radon Analysis
       run: |
-        git fetch --unshallow  # Ensure full history is available
+        git fetch  # Ensure full history is available
         radon cc $(git diff --name-only 2.0...HEAD || echo "no_files") -j >cc.json
