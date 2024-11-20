@@ -25,13 +25,11 @@ jobs:
         pip install radon
 
     - name: Run Radon Cyclomatic Complexity
-      run: |
-        radon cc -s -a src/masoniteorm/collection > radon_output.txt
-
-    - name: Read Radon Output
       id: radon
       run: |
+        radon cc -s -a src/masoniteorm/collection > radon_output.txt
         output=$(cat radon_output.txt)
+        echo "$output"
         echo "::set-output name=radon_output::$output"
 
     - name: Comment on Pull Request
