@@ -26,7 +26,7 @@ jobs:
 
     - name: Run Radon Cyclomatic Complexity
       run: |
-        radon cc -s -a src/ > radon_output.txt
+        radon cc -s -a src/masoniteorm/collection > radon_output.txt
 
     - name: Read Radon Output
       id: radon
