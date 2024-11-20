@@ -16,7 +16,7 @@ jobs:
           radon mi src/ -j >mi.json
           radon hal src/ -j >hal.json
       - name: Comment the results on the PR
-        uses: Libra-foundation/radon-comment@V0.1
+        uses: Libra-foundation/radon-comment@v0.1
         with:
           cc: "cc.json"
           mi: "mi.json"
