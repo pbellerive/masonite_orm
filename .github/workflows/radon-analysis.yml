@@ -25,7 +25,11 @@ jobs:
         pip install radon
 
     - name: Run Radon Cyclomatic Complexity
-      run: radon cc -s -a src/
+      id: radon
+      run: |
+        radon_output=$(radon cc -s -a src/)
+        echo "$radon_output"
+        echo "::set-output name=radon_output::$radon_output"
 
     - name: Comment on Pull Request
       if: github.event_name == 'pull_request'
@@ -35,5 +39,5 @@ jobs:
         header: Radon Cyclomatic Complexity Report
         message: |
           ```console
-          $(radon cc -s -a src/)
+          ${{ steps.radon.outputs.radon_output }}
           ```
