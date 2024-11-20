@@ -32,7 +32,7 @@ jobs:
       id: radon
       run: |
         output=$(cat radon_output.txt)
-        echo "::set-output name=radon_output::$output"
+        echo "radon_output=$output" >> $GITHUB_ENV
 
     - name: Comment on Pull Request
       if: github.event_name == 'pull_request'
