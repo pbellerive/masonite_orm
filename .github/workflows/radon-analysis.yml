@@ -14,9 +14,9 @@ jobs:
         run: pip install radon
       - name: Create Radon's reports
         run: |
-          radon cc src/ -j >cc.json
-          radon mi src/ -j >mi.json
-          radon hal src/ -j >hal.json
+          radon cc $(git diff --name-only origin/2.0) -j >cc.json
+          radon mi $(git diff --name-only origin/2.0) -j >mi.json
+          radon hal $(git diff --name-only origin/2.0) -j >hal.json
       - name: Comment the results on the PR
         uses: Libra-foundation/radon-comment@v0.1
         with:
