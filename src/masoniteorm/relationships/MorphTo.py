@@ -133,3 +133,6 @@ class MorphTo(BaseRelationship):
         raise NotImplementedError(
             "MorphTo relationship does not implement the attach_related method"
         )
+
+    def map_related(self, related_result):
+        return related_result
