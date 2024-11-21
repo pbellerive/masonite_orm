@@ -1970,7 +1970,7 @@ class QueryBuilder(ObservesEvents):
     def _map_related(self, related_result, related):
         if related.__class__.__name__ == 'MorphTo':
             return related_result
-        elif related.__class__.__name__ == 'HasOneThrough':
+        elif related.__class__.__name__ in ['HasOneThrough', 'HasManyThrough']:
             return related_result.group_by(related.local_key)
 
         return related_result.group_by(related.foreign_key)
