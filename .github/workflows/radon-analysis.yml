@@ -1,26 +1,23 @@
-name: Radon Analysis
-
-on: [push, pull_request]
+name: Radon
+on:
+  pull_request:
+    branches: ["main"]
 
 jobs:
-  radon-analysis:
+  comment:
+    permissions:
+      pull-requests: write
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0  # Fetch all history for all branches and tags
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-
-    - name: Install Radon
-      run: pip install radon
-
-    - name: Run Radon Analysis
-      run: |
-        git fetch  # Ensure full history is available
-        radon cc $(git diff --name-only master...HEAD || echo "no_files") -j >cc.json
+      - uses: actions/checkout@v3
+      - name: Create Radon's reports
+        run: |
+          radon cc src/ -j >cc.json
+          radon mi src/ -j >mi.json
+          radon hal src/ -j >hal.json
+      - name: Comment the results on the PR
+        uses: Libra-foundation/radon-comment@v0.1
+        with:
+          cc: "cc.json"
+          mi: "mi.json"
+          hal: "hal.json"
