@@ -66,3 +66,6 @@ class BelongsTo(BaseRelationship):
         related = collection.get(getattr(model, self.local_key), None)
 
         model.add_relation({key: related[0] if related else None})
+
+    def map_related(self, related_result):
+        return related_result.group_by(self.foreign_key)
