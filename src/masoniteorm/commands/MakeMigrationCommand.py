@@ -12,7 +12,7 @@ class MakeMigrationCommand(Command):
     Creates a new migration file.
 
     migration
-        {name : The name of the migration} 
+        {name : The name of the migration}
         {--c|create=None : The table to create}
         {--t|table=None : The table to alter}
         {--d|directory=databases/migrations : The location of the migration directory}

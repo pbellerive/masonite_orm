@@ -542,7 +542,6 @@ class Collection:
             return None
 
     def __setitem__(self, key, value):
-        # test
         self._items[key] = value
 
     def __delitem__(self, key):
