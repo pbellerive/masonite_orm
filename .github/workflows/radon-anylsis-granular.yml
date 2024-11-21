@@ -39,18 +39,26 @@ jobs:
         RESULTS=""
         for FILE in $CHANGED_FILES; do
           echo "Processing file: $FILE"
-          METHODS=$(radon cc $FILE -s | awk '/^   / {print $NF}')
+          
+          # Get method names and their line numbers
+          METHODS=$(radon cc $FILE -s | grep -oP "^\s*\d+.*\K[^\(]+" || true)
           echo "Methods found: $METHODS"
           
-          # Map changes to specific methods
+          # Extract the lines that are changed in this file
           while IFS= read -r LINE; do
             if [[ $LINE == *"$FILE"* ]]; then
               LINE_NUMBER=$(echo $LINE | grep -oP '(?<=\+)\d+')
+              
+              # Match the method based on line number
               MATCHING_METHOD=$(radon cc $FILE -s | awk -v line=$LINE_NUMBER '{
                 if ($1 ~ /^[0-9]+:/ && $1 <= line) method=$NF;
                 if ($1 > line) { print method; exit }
               }')
-              RESULTS+="$MATCHING_METHOD (in $FILE)\n"
+              
+              # Append method results
+              if [[ ! " ${RESULTS[@]} " =~ " ${MATCHING_METHOD} " ]]; then
+                RESULTS+="$MATCHING_METHOD\n"
+              fi
             fi
           done <<< "$(cat changed_lines.diff)"
         done
