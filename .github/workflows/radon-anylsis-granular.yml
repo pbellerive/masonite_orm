@@ -1,0 +1,79 @@
+name: Radon Analysis (Granular)
+
+on:
+  pull_request:
+    paths:
+      - '**/*.py' # Only trigger for Python files
+
+jobs:
+  radon_analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Ensure full history is fetched for git diff to work properly
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: pip install radon
+
+    - name: Get changed lines
+      id: get_changed_lines
+      run: |
+        git diff -U0 ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -E '^\+\+\+|^\+\d' > changed_lines.diff
+        echo "Changed lines:"
+        cat changed_lines.diff
+
+    - name: Parse changed methods
+      id: parse_methods
+      run: |
+        CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '.py$' || true)
+        echo "Analyzing methods in changed files: $CHANGED_FILES"
+        
+        RESULTS=""
+        for FILE in $CHANGED_FILES; do
+          echo "Processing file: $FILE"
+          METHODS=$(radon cc $FILE -s | awk '/^   / {print $NF}')
+          echo "Methods found: $METHODS"
+          
+          # Map changes to specific methods
+          while IFS= read -r LINE; do
+            if [[ $LINE == *"$FILE"* ]]; then
+              LINE_NUMBER=$(echo $LINE | grep -oP '(?<=\+)\d+')
+              MATCHING_METHOD=$(radon cc $FILE -s | awk -v line=$LINE_NUMBER '{
+                if ($1 ~ /^[0-9]+:/ && $1 <= line) method=$NF;
+                if ($1 > line) { print method; exit }
+              }')
+              RESULTS+="$MATCHING_METHOD (in $FILE)\n"
+            fi
+          done <<< "$(cat changed_lines.diff)"
+        done
+        echo -e "$RESULTS" > results.txt
+        echo "RESULTS<<EOF" >> $GITHUB_ENV
+        cat results.txt >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+
+    - name: Debug results
+      run: |
+        echo "Granular results:"
+        cat results.txt
+
+    - name: Comment on PR
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: Radon Method-Level Analysis
+        message: |
+          **Radon Analysis Results:**
+          ```
+          ${{ env.RESULTS }}
+          ```
+
+    - name: Log if no methods found
+      if: env.RESULTS == ''
+      run: echo "No methods found with changes in this PR."
