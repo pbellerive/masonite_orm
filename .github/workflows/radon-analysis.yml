@@ -23,4 +23,4 @@ jobs:
     - name: Run Radon Analysis
       run: |
         git fetch  # Ensure full history is available
-        radon cc $(git diff --name-only 2.0...HEAD || echo "no_files") -j >cc.json
+        radon cc $(git diff --name-only master...HEAD || echo "no_files") -j >cc.json
