@@ -269,4 +269,4 @@ class HasOneThrough(BaseRelationship):
         return return_query
 
     def map_related(self, related_result):
-        return related_result.group_by(related.local_key)
+        return related_result.group_by(self.local_key)
