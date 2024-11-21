@@ -40,8 +40,13 @@ jobs:
         for FILE in $CHANGED_FILES; do
           echo "Processing file: $FILE"
           
-          # Get method names and their line numbers
-          METHODS=$(radon cc $FILE -s | grep -oP "^\s*\d+.*\K[^\(]+" || true)
+          # Run radon cc and check the raw output
+          RADON_OUTPUT=$(radon cc $FILE -s || true)
+          echo "Raw Radon Output for $FILE:"
+          echo "$RADON_OUTPUT"
+          
+          # Check if there are methods in the output
+          METHODS=$(echo "$RADON_OUTPUT" | grep -oP "^\s*\d+.*\K[^\(]+" || true)
           echo "Methods found: $METHODS"
           
           # Extract the lines that are changed in this file
@@ -50,7 +55,7 @@ jobs:
               LINE_NUMBER=$(echo $LINE | grep -oP '(?<=\+)\d+')
               
               # Match the method based on line number
-              MATCHING_METHOD=$(radon cc $FILE -s | awk -v line=$LINE_NUMBER '{
+              MATCHING_METHOD=$(echo "$RADON_OUTPUT" | awk -v line=$LINE_NUMBER '{
                 if ($1 ~ /^[0-9]+:/ && $1 <= line) method=$NF;
                 if ($1 > line) { print method; exit }
               }')
