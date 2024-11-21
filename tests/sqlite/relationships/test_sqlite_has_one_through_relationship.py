@@ -29,7 +29,8 @@ class IncomingShipment(Model):
         return [Country, Port]
 
 
-class TestRelationships(unittest.TestCase):
+
+class TestHasOneThroughRelationship(unittest.TestCase):
     def setUp(self):
         self.schema = Schema(
             connection="dev",
