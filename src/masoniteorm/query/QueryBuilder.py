@@ -1973,7 +1973,7 @@ class QueryBuilder(ObservesEvents):
         elif related.__class__.__name__ in ['HasOneThrough', 'HasManyThrough']:
             return related_result.group_by(related.local_key)
 
-        return related_result.group_by(related.foreign_key)
+        return related_result
 
     def all(self, selects=[], query=False):
         """Returns all records from the table.
