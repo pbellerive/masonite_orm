@@ -84,7 +84,9 @@ class HasManyThrough(BaseRelationship):
         intermediate_table = intermediary_builder.get_table_name()
 
         return (
-            self.distant_builder.select(f"{distant_table}.*, {intermediate_table}.{self.local_key}")
+            self.distant_builder.select(
+                f"{distant_table}.*, {intermediate_table}.{self.local_key}"
+            )
             .join(
                 f"{intermediate_table}",
                 f"{intermediate_table}.{self.foreign_key}",
@@ -263,3 +265,6 @@ class HasManyThrough(BaseRelationship):
         )
 
         return return_query
+
+    def map_related(self, related_result):
+        return related_result.group_by(self.local_key)
