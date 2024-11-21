@@ -12,7 +12,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-      
+      with:
+        fetch-depth: 0 # Ensure full history is fetched for git diff to work
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -24,7 +26,15 @@ jobs:
     - name: Get list of changed files
       id: get_changed_files
       run: |
-        echo "CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '.py$')" >> $GITHUB_ENV
+        git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
+        CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '.py$' || true)
+        echo "Changed files: $CHANGED_FILES"
+        echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
+
+    - name: Debug changed files
+      run: |
+        echo "Changed files from env: ${{ env.CHANGED_FILES }}"
+      shell: bash
 
     - name: Run Radon analysis
       id: radon_analysis
@@ -48,6 +58,6 @@ jobs:
           ${{ env.RESULTS }}
           ```
 
-    - name: Comment no Python files found
+    - name: Log if no Python files found
       if: env.RESULTS == 'None'
       run: echo "No Python files changed in this PR."
