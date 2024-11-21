@@ -30,3 +30,6 @@ class HasMany(BaseRelationship):
         model.add_relation(
             {key: collection.get(getattr(model, self.local_key)) or Collection()}
         )
+
+    def map_related(self, related_result):
+        return related_result.group_by(self.foreign_key)
