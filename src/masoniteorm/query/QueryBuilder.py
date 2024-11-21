@@ -1715,9 +1715,7 @@ class QueryBuilder(ObservesEvents):
         if query:
             return self
 
-        result = self.new_connection().query(
-            self.to_qmark(), self._bindings, results=1
-        )
+        result = self.new_connection().query(self.to_qmark(), self._bindings, results=1)
 
         return self.prepare_result(result)
 

@@ -74,16 +74,21 @@ class SQLitePlatform(Platform):
             table_create_format.format(
                 table=self.get_table_string().format(table=table.name).strip(),
                 columns=", ".join(self.columnize(table.get_added_columns())).strip(),
-                constraints=", "
-                + ", ".join(self.constraintize(table.get_added_constraints()))
-                if table.get_added_constraints()
-                else "",
-                foreign_keys=", "
-                + ", ".join(
-                    self.foreign_key_constraintize(table.name, table.added_foreign_keys)
-                )
-                if table.added_foreign_keys
-                else "",
+                constraints=(
+                    ", " + ", ".join(self.constraintize(table.get_added_constraints()))
+                    if table.get_added_constraints()
+                    else ""
+                ),
+                foreign_keys=(
+                    ", "
+                    + ", ".join(
+                        self.foreign_key_constraintize(
+                            table.name, table.added_foreign_keys
+                        )
+                    )
+                    if table.added_foreign_keys
+                    else ""
+                ),
             )
         )
 
@@ -135,10 +140,12 @@ class SQLitePlatform(Platform):
                     data_type=self.type_map.get(column.column_type, ""),
                     column_constraint=column_constraint,
                     length=length,
-                    signed=" " + self.signed.get(column._signed)
-                    if column.column_type not in self.types_without_signs
-                    and column._signed
-                    else "",
+                    signed=(
+                        " " + self.signed.get(column._signed)
+                        if column.column_type not in self.types_without_signs
+                        and column._signed
+                        else ""
+                    ),
                     constraint=constraint,
                     nullable=self.premapped_nulls.get(column.is_null) or "",
                     default=default,
@@ -188,12 +195,15 @@ class SQLitePlatform(Platform):
                         column_constraint=column_constraint,
                         nullable="NULL" if column.is_null else "NOT NULL",
                         default=default,
-                        signed=" " + self.signed.get(column._signed)
-                        if column.column_type not in self.types_without_signs
-                        and column._signed
-                        else "",
+                        signed=(
+                            " " + self.signed.get(column._signed)
+                            if column.column_type not in self.types_without_signs
+                            and column._signed
+                            else ""
+                        ),
                         constraint=constraint,
-                    ).strip()
+                    )
+                    .strip()
                 )
         if (
             diff.renamed_columns
@@ -227,18 +237,22 @@ class SQLitePlatform(Platform):
                 self.create_format().format(
                     table=self.get_table_string().format(table=diff.name).strip(),
                     columns=", ".join(self.columnize(columns)).strip(),
-                    constraints=", "
-                    + ", ".join(self.constraintize(diff.get_added_constraints()))
-                    if diff.get_added_constraints()
-                    else "",
-                    foreign_keys=", "
-                    + ", ".join(
-                        self.foreign_key_constraintize(
-                            diff.name, diff.added_foreign_keys
+                    constraints=(
+                        ", "
+                        + ", ".join(self.constraintize(diff.get_added_constraints()))
+                        if diff.get_added_constraints()
+                        else ""
+                    ),
+                    foreign_keys=(
+                        ", "
+                        + ", ".join(
+                            self.foreign_key_constraintize(
+                                diff.name, diff.added_foreign_keys
+                            )
                         )
-                    )
-                    if diff.added_foreign_keys
-                    else "",
+                        if diff.added_foreign_keys
+                        else ""
+                    ),
                 )
             )
 
@@ -298,9 +312,7 @@ class SQLitePlatform(Platform):
         return '"{column}"'
 
     def add_column_string(self):
-        return (
-            "ALTER TABLE {table} ADD COLUMN {name} {data_type}{column_constraint}{signed} {nullable}{default}{constraint}"
-        )
+        return "ALTER TABLE {table} ADD COLUMN {name} {data_type}{column_constraint}{signed} {nullable}{default}{constraint}"
 
     def create_column_length(self, column_type):
         if column_type in self.types_without_lengths:

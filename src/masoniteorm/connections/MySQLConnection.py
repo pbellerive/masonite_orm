@@ -36,11 +36,7 @@ class MySQLConnection(BaseConnection):
         self.password = password
         self.prefix = prefix
         self.full_details = full_details or {}
-        self.connection_pool_size = (
-            full_details.get(
-                "connection_pooling_max_size", 100
-            )
-        )
+        self.connection_pool_size = full_details.get("connection_pooling_max_size", 100)
         self.options = options or {}
         self._cursor = None
         self.open = 0
