@@ -1,34 +1,53 @@
-name: Radon
+name: Radon Analysis
+
 on:
   pull_request:
-    branches: ["2.0"]
+    paths:
+      - '**/*.py' # Only trigger for Python files
 
 jobs:
-  comment:
-    permissions:
-      pull-requests: write
+  radon_analysis:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Install Radon
-        run: pip install radon
-      - name: Create Radon's reports
-        run: |
-          radon cc src/ -j >cc.json
-          radon mi src/ -j >mi.json
-          radon hal src/ -j >hal.json
-      - name: Print Radon reports
-        run: |
-          echo "Cyclomatic Complexity Report:"
-          cat cc.json
-          echo "Maintainability Index Report:"
-          cat mi.json
-          echo "Halstead Metrics Report:"
-          cat hal.json
-      - name: Comment the results on the PR
-        uses: Libra-foundation/radon-comment@v0.1
-        with:
-          cc: "cc.json"
-          mi: "mi.json"
-          hal: "hal.json"
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install Radon
+      run: pip install radon
+
+    - name: Get list of changed files
+      id: get_changed_files
+      run: |
+        echo "CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '.py$')" >> $GITHUB_ENV
+
+    - name: Run Radon analysis
+      id: radon_analysis
+      run: |
+        if [ -z "${{ env.CHANGED_FILES }}" ]; then
+          echo "No Python files changed."
+          echo "RESULTS=None" >> $GITHUB_ENV
+        else
+          RESULTS=$(echo "${{ env.CHANGED_FILES }}" | xargs radon cc -s -n A)
+          echo "RESULTS=$RESULTS" >> $GITHUB_ENV
+        fi
+
+    - name: Comment on PR
+      if: env.RESULTS != 'None'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: Radon Complexity Analysis
+        message: |
+          **Radon Analysis Results:**
+          ```
+          ${{ env.RESULTS }}
+          ```
+
+    - name: Comment no Python files found
+      if: env.RESULTS == 'None'
+      run: echo "No Python files changed in this PR."
