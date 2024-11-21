@@ -17,9 +17,18 @@ jobs:
           radon cc src/ -j >cc.json
           radon mi src/ -j >mi.json
           radon hal src/ -j >hal.json
+      - name: Print Radon reports
+        run: |
+          echo "Cyclomatic Complexity Report:"
+          cat cc.json
+          echo "Maintainability Index Report:"
+          cat mi.json
+          echo "Halstead Metrics Report:"
+          cat hal.json
       - name: Comment the results on the PR
         uses: Libra-foundation/radon-comment@v0.1
         with:
           cc: "cc.json"
           mi: "mi.json"
           hal: "hal.json"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
