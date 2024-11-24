@@ -70,4 +70,4 @@ class HasOne(BaseRelationship):
         model.add_relation({key: related or None})
 
     def map_related(self, related_result):
-        return related_result.group_by(self.local_key)
+        return related_result
