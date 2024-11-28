@@ -1715,9 +1715,7 @@ class QueryBuilder(ObservesEvents):
         if query:
             return self
 
-        result = self.new_connection().query(
-            self.to_qmark(), self._bindings, results=1
-        )
+        result = self.new_connection().query(self.to_qmark(), self._bindings, results=1)
 
         return self.prepare_result(result)
 
@@ -1968,12 +1966,7 @@ class QueryBuilder(ObservesEvents):
         return self
 
     def _map_related(self, related_result, related):
-        if related.__class__.__name__ == 'MorphTo':
-            return related_result
-        elif related.__class__.__name__ in ['HasOneThrough', 'HasManyThrough']:
-            return related_result.group_by(related.local_key)
-
-        return related_result.group_by(related.foreign_key)
+        return related.map_related(related_result)
 
     def all(self, selects=[], query=False):
         """Returns all records from the table.

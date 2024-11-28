@@ -563,9 +563,7 @@ class Model(TimeStampsMixin, ObservesEvents, metaclass=ModelMeta):
             self: A hydrated version of a model
         """
         if query:
-            return cls.builder.create(
-                dictionary, query=True, cast=cast, **kwargs
-            )
+            return cls.builder.create(dictionary, query=True, cast=cast, **kwargs)
 
         return cls.builder.create(dictionary, cast=cast, **kwargs)
 

@@ -193,3 +193,6 @@ class BaseRelationship:
         )
 
         return related_builder
+
+    def map_related(self, related_result):
+        return related_result

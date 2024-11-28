@@ -10,7 +10,6 @@ from ...expressions.expressions import (
 
 
 class BaseGrammar:
-
     """The keys in this dictionary is how the ORM will reference these aggregates
 
     The values on the right are the matching functions for the grammar

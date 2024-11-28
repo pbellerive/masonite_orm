@@ -163,13 +163,16 @@ class HasOneThrough(BaseRelationship):
         if callback:
             callback(current_builder)
 
-        (self.distant_builder.select(f"{dist_table}.*, {int_table}.{self.local_owner_key} as {self.local_key}")
-        .join(
-            f"{int_table}",
-            f"{int_table}.{self.foreign_key}",
-            "=",
-            f"{dist_table}.{self.other_owner_key}",
-        ))
+        (
+            self.distant_builder.select(
+                f"{dist_table}.*, {int_table}.{self.local_owner_key} as {self.local_key}"
+            ).join(
+                f"{int_table}",
+                f"{int_table}.{self.foreign_key}",
+                "=",
+                f"{dist_table}.{self.other_owner_key}",
+            )
+        )
 
         if isinstance(relation, Collection):
             return self.distant_builder.where_in(
@@ -267,3 +270,6 @@ class HasOneThrough(BaseRelationship):
         )
 
         return return_query
+
+    def map_related(self, related_result):
+        return related_result.group_by(self.local_key)
